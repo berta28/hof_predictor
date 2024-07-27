@@ -24,8 +24,8 @@ Welcome to the Baseball Hall of Fame Predictor app! This app allows users to exp
 
 ### 3. Build the Model:
 
-* In the "Model" tab, click the "Build Model" button to train a logistic regression model with the selected features.
-* View the model summary and coefficients to understand the impact of each feature on the prediction.
+* In the "Model" tab, trains a logistic regression model with the selected features.
+* View the model summary AUC and coefficients to understand the impact of each feature on the prediction.
 
 ### 4. Evaluate the Model:
 

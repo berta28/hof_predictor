@@ -1,4 +1,14 @@
 
+library(shiny)
+library(ggplot2)
+library(bslib)
+library(gridlayout)
+library(dplyr)
+library(caret)
+library(pROC) 
+library(DT)
+library(plotly)
+library(markdown)
 
 server <- function(input, output, session) {
   # Create a reactive dataset based on the selected features
@@ -184,9 +194,9 @@ server <- function(input, output, session) {
         prob <- predict(model(), new_data, type = "prob")$Yes
   
         if (prob > 0.7) {
-          list(src = "images/likely_image.png", alt = "Likely to be inducted into the Hall of Fame", width = "200px", height = "200px")
+          list(src = "images/likely_image.png", alt = "Likely to be inducted into the Hall of Fame", width = "700px", height = "700px")
         } else {
-          list(src = "images/unlikely_image.png", alt = "Not likely to be inducted into the Hall of Fame", width = "200px", height = "200px")
+          list(src = "images/unlikely_image.png", alt = "Not likely to be inducted into the Hall of Fame", width = "700px", height = "700px")
         }
   
       }

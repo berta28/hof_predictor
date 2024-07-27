@@ -11,9 +11,9 @@ library(markdown)
 
 create_dataset <- function() {
     # Reading and preparing the hitting data#
-    hitting_data <- read.csv("baseball/Batting.csv")
-    hof_data <- read.csv("baseball/HallOfFame.csv")
-    awards_data <- read.csv("baseball/AwardsPlayers.csv")
+    hitting_data <- read.csv(file.path(getwd(), "baseball/Batting.csv"))
+    hof_data <- read.csv(file.path(getwd(),"baseball/HallOfFame.csv"))
+    awards_data <- read.csv(file.path(getwd(),"baseball/AwardsPlayers.csv"))
     # Debug log for pathing
     print(getwd())
 

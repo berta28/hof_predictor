@@ -39,7 +39,17 @@ ui <- fluidPage(
                      "TotalWalks" = "TotalWalks",
                      "TotalStrikeouts" = "TotalStrikeouts",
                      "TotalAwards" = "TotalAwards"),
-                     selected = c("TotalYears")
+                     selected = c("TotalYears",
+                           "TotalGames",
+                           "TotalAtBats",
+                           "TotalRuns",
+                           "TotalHits",
+                           "TotalHomeRuns",
+                           "TotalRunsBattedIn",
+                           "TotalStolenBases",
+                           "TotalWalks",
+                           "TotalStrikeouts",
+                           "TotalAwards")
                  ),
                 sliderInput(
                   "year_filter",

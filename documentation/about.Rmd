@@ -13,12 +13,12 @@ I created this app to look into what kind of offensive statistics a player needs
 ### About the Data
 
 The dataset used in this application comes from the [Baseball Databank on Kaggle](https://www.kaggle.com/datasets/open-source-sports/baseball-databank/data). Specifically, it includes data from multiple files such as AwardsPlayer, HallofFame, and Batting. This data is only up to 2015. These files were aggregated to form a comprehensive dataset suitable for training the Hall of Fame prediction model.
-
 The data has been carefully cleaned to remove NA values, as these are not usable for logistic regression. Additionally, outliers and bad data were filtered out to improve the model's accuracy.
 
 ## Features in the Dataset
 The dataset comprises key offensive statistics and a numerical representation of awards won by players. Here’s a brief explanation of each variable used in the app:
 
+- **playerID**: A unique identifier for each player. First 5 characters of the last name and first 2 characters of the first name.
 - **TotalYears**: The total number of years a player has played.
 - **TotalGames**: The total number of games a player has participated in.
 - **TotalAtBats**: The total number of at-bats a player has had.
