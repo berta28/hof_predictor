@@ -1,8 +1,21 @@
+library(shiny)
+library(ggplot2)
+library(bslib)
+library(gridlayout)
+library(dplyr)
+library(caret)
+library(pROC) 
+library(DT)
+library(plotly)
+library(markdown)
+
 create_dataset <- function() {
-    # Reading and preparing the hitting data
+    # Reading and preparing the hitting data#
     hitting_data <- read.csv("baseball/Batting.csv")
     hof_data <- read.csv("baseball/HallOfFame.csv")
     awards_data <- read.csv("baseball/AwardsPlayers.csv")
+    # Debug log for pathing
+    print(getwd())
 
     # Aggregating data to get total statistics for each player
     hitting_data_agg <- hitting_data %>%
