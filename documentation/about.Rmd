@@ -1,0 +1,98 @@
+---
+output:
+  pdf_document:
+    toc: yes
+runtime: shiny
+---
+### About Me
+Baseball is a beloved sport with a rich history. Understanding what makes a player worthy of the Hall of Fame is intriguing for fans and analysts alike. It provides insights into the game's evolution and helps celebrate the achievements of legendary players.
+
+Growing up, I have always loved baseball and have always enjoyed watching the New York Yankees. Seeing Derek Jeter, one of the greatest shortstops, play has always made me wonder what it takes to be inducted into the Hall of Fame. I vividly remember his 3000th hit and have often pondered at what point in his career he actually qualified for the Hall of Fame. Was it that hit, the awards he won, or his World Series wins that earned him the title "Mr. November"?
+I created this app to look into what kind of offensive statistics a player needs to be inducted into the Hall of Fame. I hope you enjoy exploring the data and building models to predict Hall of Fame induction.
+
+### About the Data
+
+The dataset used in this application comes from the [Baseball Databank on Kaggle](https://www.kaggle.com/datasets/open-source-sports/baseball-databank/data). Specifically, it includes data from multiple files such as AwardsPlayer, HallofFame, and Batting. This data is only up to 2015. These files were aggregated to form a comprehensive dataset suitable for training the Hall of Fame prediction model.
+
+The data has been carefully cleaned to remove NA values, as these are not usable for logistic regression. Additionally, outliers and bad data were filtered out to improve the model's accuracy.
+
+## Features in the Dataset
+The dataset comprises key offensive statistics and a numerical representation of awards won by players. Here’s a brief explanation of each variable used in the app:
+
+- **TotalYears**: The total number of years a player has played.
+- **TotalGames**: The total number of games a player has participated in.
+- **TotalAtBats**: The total number of at-bats a player has had.
+- **TotalRuns**: The total number of runs a player has scored.
+- **TotalHits**: The total number of hits a player has made.
+- **TotalHomeRuns**: The total number of home runs a player has hit.
+- **TotalRunsBattedIn**: The total number of runs batted in by a player.
+- **TotalStolenBases**: The total number of bases a player has stolen.
+- **TotalWalks**: The total number of walks a player has received.
+- **TotalStrikeouts**: The total number of times a player has struck out.
+- **TotalAwards**: The total number of awards a player has won.
+
+Changing these variables affects the model’s prediction by altering the input data on which the logistic regression model is trained and evaluated. For instance, increasing the total number of home runs or runs batted in may improve a player's chances of being predicted as a Hall of Fame inductee.
+
+## Logistic Regression Explained
+
+Logistic regression is a statistical method used to analyze a dataset with a binary outcome variable. It is called a regression because it predicts the probability of the binary outcome variable based on the values of the input variables. In this app, logistic regression is used to predict the probability of a player being inducted into the Hall of Fame.
+
+Logistic regression generates a regression model with coefficients that can be used to predict the probability of the outcome, given a set of input variable values. Here’s a brief overview of the key metrics used to evaluate the model:
+
+- Sensitivity: The probability that the model predicts a positive outcome for an observation when the outcome is indeed positive.
+- Specificity: The probability that the model predicts a negative outcome for an observation when the outcome is indeed negative.
+- ROC Curve: A plot that displays the sensitivity and specificity of a logistic regression model.
+- AUC (Area Under the Curve): A measure of the model’s performance. It represents the probability that the model will rank a randomly chosen positive instance higher than a randomly chosen negative instance. An AUC value ranges from 0.5 (no better than random) to 1 (perfect performance). A value of 0.7 to 0.8 is considered acceptable, while 0.8 to 0.9 is considered excellent.
+
+## How Logistic Regression Works
+
+Logistic regression is used to fit a regression model when the response variable is binary. The model calculates coefficients that represent the impact of each feature on the outcome. These coefficients can be interpreted to understand how changes in the input variables affect the probability of the outcome. In this app, the outcome is whether a player is inducted into the Hall of Fame.
+
+The coefficients calculated represent the relative impact that each feature has on the outcome of the prediction. The ROC curve helps visualize the sensitivity and specificity of the model, with the AUC providing a quantifiable measure of the model's performance.
+
+- Logistic regression is like a tool that helps us understand how different factors contribute to a yes/no decision.
+- It looks at the data and finds a pattern that helps predict the probability of a yes (e.g., being inducted into the Hall of Fame) or a no (e.g., not being inducted).
+- It uses a mathematical formula to calculate coefficients for each factor, which tells us how important each factor is in making the prediction.
+- The ROC curve helps us see how good our model is at making correct predictions, and the AUC gives us a single number to summarize its performance.
+
+## Pros and Cons of Logistic Regression
+
+Pros:
+- Simple and easy to implement.
+- Provides probabilities and can handle binary outcomes.
+- Can be used as a baseline model for comparison with more complex models.
+
+Cons:
+- Assumes a linear relationship between the input variables and the log odds of the outcome.
+- Not suitable for non-linear problems without transformation of the input variables.
+- Can be sensitive to outliers.
+
+By using logistic regression, we can make informed predictions and gain insights into the factors that influence Hall of Fame induction, making this analysis valuable for baseball fans and analysts alike.
+Understanding which factors contribute most significantly to Hall of Fame induction can help teams and analysts focus on key performance indicators. This knowledge can also aid in historical analysis and comparison of players across different eras.
+
+### Summary of Results
+
+During my investigation, I discovered that TotalYears and TotalAwards play a significant role in determining Hall of Fame status. For my analysis, I used all the variables mentioned earlier and applied some filters to clean the data further.
+
+When examining the data, it became evident that there were significantly more entries for players whose stats were dwarfed in comparison to Hall of Fame players. These entries often included players who had only played in a few games or were primarily pitchers. To improve the model, I focused on predicting outcomes for the best of the best players by applying filters to retain the better-performing players.
+
+#### Data Cleaning and Filtering
+
+Batting Average: I decided that no offensive Hall of Famer would have a batting average below 0.200. This filter helped exclude players who did not meet this threshold.
+
+Total Years Played: Most Hall of Famers had played for many years. Therefore, I filtered the data to include only those players who had played for five or more years.
+
+Applying these filters significantly improved the dataset's quality, enabling the model to distinguish between good and great players more effectively.
+
+#### Key Findings
+
+More Stats, Better Chance: The analysis showed that higher stats generally correlate with a better chance of being inducted into the Hall of Fame. This is evident when looking at the graphs in the "Explore Data" section, which show that most Hall of Famers fall into the higher sections of various stats due to their extended careers, leading to higher accumulated statistics.
+
+Impactful Stats: The model's coefficients indicate that TotalYears and TotalAwards have the most significant impact on Hall of Fame probability. This confirms the initial hypothesis that more years played equals more stats accumulated, thereby increasing the chances of Hall of Fame induction.
+
+Least Impactful Stats: Interestingly, Stolen Bases and Home Runs had the lowest coefficients. This suggests that overall, RBI and Hits are more impactful in determining Hall of Fame probability than these two stats.
+
+You can use my values and see the results for yourself with the app. The model's predictions provide valuable insights into the factors that contribute to a player's likelihood of being inducted into the Hall of Fame, helping to celebrate the achievements of legendary players and understand the game's history better.
+
+author: "Sean Berta"
+date: "2024-07-27"

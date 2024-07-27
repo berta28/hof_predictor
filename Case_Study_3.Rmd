@@ -1,0 +1,447 @@
+---
+title: "Case Study 2 - Analyzing data from MovieLens"
+author: "Sean Berta"
+class: "DS501 - Introduction to Data Science"
+date: "07/13/2024"
+output:
+  pdf_document:
+    toc: yes
+
+runtime: shiny
+---
+Introduction
+
+In this case study you will have to make an R Shiny application.
+```{r}
+library(dplyr)
+library(caret)
+library(pROC)  
+```
+```{r}
+awards_data <- read.csv("case_study_3/baseball/AwardsPlayers.csv")
+awards_data <- awards_data %>%
+  group_by(playerID) %>%
+  summarise(
+    TotalAwards = n_distinct(awardID)
+  )
+
+str(awards_data)
+summary(awards_data)
+
+
+```
+## 1. Please select any data set from below links or any other suitable dataset
+```{r}
+# Reading and preparing the hitting data
+hitting_data <- read.csv("case_study_3/baseball/Batting.csv")
+
+# Aggregating data to get total statistics for each player
+hitting_data_agg <- hitting_data %>%
+  group_by(playerID) %>%
+  summarise(
+    TotalYears = n_distinct(yearID),
+    TotalGames = sum(G),
+    TotalAtBats = sum(AB),
+    TotalRuns = sum(R),
+    TotalHits = sum(H),
+    TotalHomeRuns = sum(HR),
+    TotalRunsBattedIn = sum(RBI),
+    TotalStolenBases = sum(SB),
+    TotalWalks = sum(BB),
+    TotalStrikeouts = sum(SO),
+  )
+
+#shows 6 rows of data
+head(hitting_data_agg[0:6,])
+
+#add number of rewards earned as colum 
+awards_data <- read.csv("case_study_3/baseball/AwardsPlayers.csv")
+awards_data <- awards_data %>%
+  group_by(playerID) %>%
+  summarise(
+    TotalAwards = n_distinct(awardID)
+  )
+
+#add awards to hitting data if player is not in awards awards = 0
+hitting_data_agg <- hitting_data_agg %>%
+  left_join(awards_data, by = "playerID") %>%
+  mutate(
+    TotalAwards = ifelse(is.na(TotalAwards), 0, TotalAwards)
+  )
+
+
+
+# add starting year of career
+hitting_data_agg <- hitting_data_agg %>%
+  mutate(
+    StartYear = min(hitting_data$yearID[hitting_data$playerID == playerID])
+  )
+# Checking for and removing players with incomplete stats
+hitting_data_agg <- hitting_data_agg %>%
+  filter(
+    !is.na(TotalYears) & !is.na(TotalGames) & !is.na(TotalAtBats) &
+      !is.na(TotalRuns) & !is.na(TotalHits) & !is.na(TotalHomeRuns) &
+      !is.na(TotalRunsBattedIn) & !is.na(TotalStolenBases) &
+      !is.na(TotalWalks) & !is.na(TotalStrikeouts)
+  )
+
+# Adding batting average and on-base percentage to the dataset
+hitting_data_agg <- hitting_data_agg %>%
+  mutate(
+    BattingAverage = TotalHits / TotalAtBats,
+    OnBasePercentage = (TotalHits + TotalWalks) / TotalAtBats
+  )
+#remove na values
+hitting_data_agg <- na.omit(hitting_data_agg)
+# Reading and preparing the Hall of Fame data
+hof_data <- read.csv("case_study_3/baseball/HallOfFame.csv")
+hof_data <- hof_data %>% filter(inducted == "Y" & category == "Player")
+
+# Adding a column to indicate if a player is in the Hall of Fame
+hitting_data_agg$HOF <- as.factor(ifelse(hitting_data_agg$playerID %in% hof_data$playerID, "Yes", "No"))
+
+summary(hitting_data_agg)
+
+```
+```{r}
+# Create a plot the distribution of a hits for Hall of Famers and non-Hall of Famers
+ggplot(hitting_data_agg, aes(x = TotalHits, fill = HOF)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Distribution of Total Hits for Hall of Famers and Non-Hall of Famers",
+       x = "Total Hits",
+       y = "Density") +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}  
+# Create a plot the distribution of a batting average for Hall of Famers and non-Hall of Famers
+ggplot(hitting_data_agg, aes(x = BattingAverage, fill = HOF)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Distribution of Batting Average for Hall of Famers and Non-Hall of Famers",
+       x = "Batting Average",
+       y = "Density") +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}
+# Create a plot the distribution of a on-base percentage for Hall of Famers and non-Hall of Famers
+ggplot(hitting_data_agg, aes(x = OnBasePercentage, fill = HOF)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Distribution of On-Base Percentage for Hall of Famers and Non-Hall of Famers",
+       x = "On-Base Percentage",
+       y = "Density") +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}
+# Create a plot the distribution of a total games for Hall of Famers and non-Hall of Famers
+ggplot(hitting_data_agg, aes(x = TotalGames, fill = HOF)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Distribution of Total Games for Hall of Famers and Non-Hall of Famers",
+       x = "Total Games",
+       y = "Density") +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}
+# Create a plot the distribution of a total years for Hall of Famers and non-Hall of Famers
+ggplot(hitting_data_agg, aes(x = TotalYears, fill = HOF)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Distribution of Total Years for Hall of Famers and Non-Hall of Famers",
+       x = "Total Years",
+       y = "Density") +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}
+# Create a plot the distribution of a total home runs for Hall of Famers and non-Hall of Famers
+ggplot(hitting_data_agg, aes(x = TotalHomeRuns, fill = HOF)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Distribution of Total Home Runs for Hall of Famers and Non-Hall of Famers",
+       x = "Total Home Runs",
+       y = "Density") +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}
+# Create a plot the distribution of a total runs batted in for Hall of Famers and non-Hall of Famers
+ggplot(hitting_data_agg, aes(x = TotalRunsBattedIn, fill = HOF)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Distribution of Total Runs Batted In for Hall of Famers and Non-Hall of Famers",
+       x = "Total Runs Batted In",
+       y = "Density") +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}
+# Create a plot the distribution of a total stolen bases for Hall of Famers and non-Hall of Famers
+ggplot(hitting_data_agg, aes(x = TotalStolenBases, fill = HOF)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Distribution of Total Stolen Bases for Hall of Famers and Non-Hall of Famers",
+       x = "Total Stolen Bases",
+       y = "Density") +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}
+# Create a plot the distribution of a total walks for Hall of Famers and non-Hall of Famers
+ggplot(hitting_data_agg, aes(x = TotalWalks, fill = HOF)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Distribution of Total Walks for Hall of Famers and Non-Hall of Famers",
+       x = "Total Walks",
+       y = "Density") +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}
+# Create a plot the distribution of a total strikeouts for Hall of Famers and non-Hall of Famers
+ggplot(hitting_data_agg, aes(x = TotalStrikeouts, fill = HOF)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Distribution of Total Strikeouts for Hall of Famers and Non-Hall of Famers",
+       x = "Total Strikeouts",
+       y = "Density") +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}
+# Create a plot the distribution of a total runs for Hall of Famers and non-Hall of Famers
+ggplot(hitting_data_agg, aes(x = TotalRuns, fill = HOF)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Distribution of Total Runs for Hall of Famers and Non-Hall of Famers",
+       x = "Total Runs",
+       y = "Density") +
+  scale_fill_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+
+```{r}
+# Define the control for cross-validation
+train_control <- trainControl(
+  method = "cv",      # Cross-validation
+  number = 5,         # Number of folds
+  classProbs = TRUE,  # Needed for AUC
+  summaryFunction = twoClassSummary # Use AUC as the metric
+)
+
+logistic_model_cv <- train(
+  HOF ~ TotalYears + TotalGames + TotalAtBats + TotalRuns + TotalHits +
+    TotalHomeRuns + TotalRunsBattedIn + TotalStolenBases + TotalWalks +
+    TotalStrikeouts + BattingAverage + OnBasePercentage,
+  data = hitting_data_agg,
+  method = "glm",
+  family = "binomial",
+  trControl = train_control,
+  metric = "ROC"
+)
+
+```
+```{r}
+attributes(logistic_model_cv)
+#create AUC plot
+roc_curve <- roc(hitting_data_agg$HOF, predict(logistic_model_cv, hitting_data_agg, type = "prob")$Yes, plot=TRUE)
+plot(x = 1- roc_curve$specificities, y=roc_curve$sensitivities, col = "blue", main = "ROC Curve for Logistic Regression Model")
+
+# Calculate the AUC
+auc(roc_curve)
+
+# Confusion matrix
+confusionMatrix(predict(logistic_model_cv, hitting_data_agg)$pred, hitting_data_agg$HOF)
+
+# Coefficients
+coef(logistic_model_cv$finalModel)
+
+# Odds ratios
+# The resulting odds ratios tell you how the odds of the outcome variable change for a one-unit increase in each predictor variable, while controlling for the other variables in the model. A value greater than 1 indicates that the odds of the outcome increase with an increase in the predictor variable, while a value less than 1 indicates that the odds decrease. A value of 1 indicates no change in the odds.
+exp(coef(logistic_model_cv$finalModel))
+```
+
+```{r}
+# add the predicted probabilities to the dataset
+hitting_data_agg$PredictedProb <- predict(logistic_model_cv, hitting_data_agg, type = "prob")$Yes
+#create graph that compares the overall fraction fo hall of famers to the predicted probability of being a hall of famer based on years played
+ggplot(hitting_data_agg, aes(x = TotalYears, y = PredictedProb)) +
+  geom_point(aes(color = HOF)) +
+  geom_smooth(method = "loess", se = FALSE) +
+  labs(title = "Predicted Probability of Being a Hall of Famer Based on Years Played",
+       x = "Total Years",
+       y = "Predicted Probability",
+       color = "Hall of Famer") +
+  scale_color_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}
+# create graph that compares the overall fraction fo hall of famers to the predicted probability of being a hall of famer based on total games played
+ggplot(hitting_data_agg, aes(x = TotalGames, y = PredictedProb)) +
+  geom_point(aes(color = HOF)) +
+  geom_smooth(method = "loess", se = FALSE) +
+  labs(title = "Predicted Probability of Being a Hall of Famer Based on Total Games Played",
+       x = "Total Games",
+       y = "Predicted Probability",
+       color = "Hall of Famer") +
+  scale_color_manual(values = c("No" = "red", "Yes" = "blue"))
+
+```
+```{r}
+# create graph that compares the overall fraction fo hall of famers to the predicted probability of being a hall of famer based on homeruns
+ggplot(hitting_data_agg, aes(x = TotalHomeRuns, y = PredictedProb)) +
+  geom_point(aes(color = HOF)) +
+  geom_smooth(method = "loess", se = FALSE) +
+  labs(title = "Predicted Probability of Being a Hall of Famer Based on Total Home Runs",
+       x = "Total Home Runs",
+       y = "Predicted Probability",
+       color = "Hall of Famer") +
+  scale_color_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}
+# create graph that compares the overall fraction fo hall of famers to the predicted probability of being a hall of famer based on batting average
+ggplot(hitting_data_agg, aes(x = BattingAverage, y = PredictedProb)) +
+  geom_point(aes(color = HOF)) +
+  geom_smooth(method = "loess", se = FALSE) +
+  labs(title = "Predicted Probability of Being a Hall of Famer Based on Batting Average",
+       x = "Batting Average",
+       y = "Predicted Probability",
+       color = "Hall of Famer") +
+  scale_color_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+```{r}
+# create graph that compares the overall fraction fo hall of famers to the predicted probability of being a hall of famer based on on base percentage
+ggplot(hitting_data_agg, aes(x = OnBasePercentage, y = PredictedProb)) +
+  geom_point(aes(color = HOF)) +
+  geom_smooth(method = "loess", se = FALSE) +
+  labs(title = "Predicted Probability of Being a Hall of Famer Based on On-Base Percentage",
+       x = "On-Base Percentage",
+       y = "Predicted Probability",
+       color = "Hall of Famer") +
+  scale_color_manual(values = c("No" = "red", "Yes" = "blue"))
+```
+
+https://www.kaggle.com/datasets/sidtwr/videogames-sales-dataset?resource=download
+## 2. Select an algorithm suitable for the above data set (Classification/Regression/Clustering/Other)
+
+## 3. Explain the mathematical/statistical details of the algorithm
+no equation by explain to someone who has no idea. What kind of problems it can solve/ why is it helpful?
+
+## 4. Create a Shiny application giving end user options to change parameters and to see how do they effect in results. Please remember data science life cycle lecture and follow the suggestions. Explain your data set and machine learningmodeling methodology in the decsriptive on your shiny application
+Show be interactive, explain the data, explain the model, explain the results.
+Get started https://shiny.rstudio.com/tutorial/ (Links to an external site.)
+ (Links to an external site.)Get inspired http://shiny.rstudio.com/gallery/ (Links to an external site.)
+Go deeper http://shiny.rstudio.com/articles/ (Links to an external site.)
+## 5. Deploy your application to
+
+https://www.shinyapps.io (Links to an external site.)
+
+Get help on how to deploy your apps http://shiny.rstudio.com/articles/shinyapps.html (Links to an external site.)
+
+## 6. What do you need to submit?
+
+Submit link of your R Shiny application from https://www.shinyapps.io (Links to an external site.) on Canvas Course Webpage
+Summary
+What data you collected?
+Why this topic is interesting or important to you? (Motivation)
+How did you analyze the data?
+What did you find in the data? (please include figures or tables in the report)
+
+## 7. Check in your code into GitHub https://github.com (Links to an external site.) (including data, take a small dataset, few MB)
+
+Your app should run something like below from RStudio 
+
+shiny::runGitHub("shiny-examples", "rstudio", subdir = "001-hello")
+DO NOT email me the code and/or application
+library(shiny)
+# library(rsconnect)
+# library(bslib)
+library(ggplot2)
+# rsconnect::setAccountInfo(name='07t44a-sean-berta',
+# 			  token='2B04B0E0B3F06761281FBB1C59D698D9',
+# 			  secret='MHdpNKngrsJdkBIEID+fO1gUidMxWshB0MMoI0GL')
+
+# rsconnect::deployApp('C:/Users/smber/code/DS501/case_study_3')
+
+```{r}
+# Reading and preparing the hitting data
+hitting_data <- read.csv("baseball/Batting.csv")
+hof_data <- read.csv("baseball/HallOfFame.csv")
+awards_data <- read.csv("baseball/AwardsPlayers.csv")
+
+# Aggregating data to get total statistics for each player
+hitting_data_agg <- hitting_data %>%
+  group_by(playerID) %>%
+  summarise(
+    TotalYears = n_distinct(yearID),
+    TotalGames = sum(G),
+    TotalAtBats = sum(AB),
+    TotalRuns = sum(R),
+    TotalHits = sum(H),
+    TotalHomeRuns = sum(HR),
+    TotalRunsBattedIn = sum(RBI),
+    TotalStolenBases = sum(SB),
+    TotalWalks = sum(BB),
+    TotalStrikeouts = sum(SO),
+    TeamsPlayedFor = toString(unique(teamID))
+  )
+awards_data <- awards_data %>%
+  group_by(playerID) %>%
+  summarise(
+    TotalAwards = n_distinct(awardID)
+  )
+
+#add awards to hitting data if player is not in awards awards = 0
+hitting_data_agg <- hitting_data_agg %>%
+  left_join(awards_data, by = "playerID") %>%
+  mutate(
+    TotalAwards = ifelse(is.na(TotalAwards), 0, TotalAwards)
+  )
+  
+# add starting year of career
+hitting_data_agg <- hitting_data_agg %>%
+  group_by(playerID) %>%
+  mutate(
+    StartYear = min(hitting_data$yearID[hitting_data$playerID == playerID])
+  )
+
+str(hitting_data_agg)
+summary(hitting_data_agg)
+
+```
+# Checking for and removing players with incomplete stats
+hitting_data_agg <- hitting_data_agg %>%
+  filter(
+    !is.na(TotalYears) & !is.na(TotalGames) & !is.na(TotalAtBats) &
+      !is.na(TotalRuns) & !is.na(TotalHits) & !is.na(TotalHomeRuns) &
+      !is.na(TotalRunsBattedIn) & !is.na(TotalStolenBases) &
+      !is.na(TotalWalks) & !is.na(TotalStrikeouts)
+  )
+
+# Adding batting average and on-base percentage to the dataset
+hitting_data_agg <- hitting_data_agg %>%
+  mutate(
+    BattingAverage = TotalHits / TotalAtBats,
+    OnBasePercentage = (TotalHits + TotalWalks) / TotalAtBats
+  )
+#remove na values
+hitting_data_agg <- na.omit(hitting_data_agg)
+# Reading and preparing the Hall of Fame data
+
+hof_data <- hof_data %>% filter(inducted == "Y" & category == "Player")
+
+# Adding a column to indicate if a player is in the Hall of Fame
+hitting_data_agg$HOF <- as.factor(ifelse(hitting_data_agg$playerID %in% hof_data$playerID, "Yes", "No"))
+```
+```{r}
+#test some code
+input$TotalYears <- 10
+input$TotalGames <- 1000
+input$TotalAtBats <- 3000
+input$TotalRuns <- 500
+input$TotalHits <- 1000
+input$TotalHomeRuns <- 200
+input$TotalRunsBattedIn <- 500
+input$TotalStolenBases <- 100
+input$TotalWalks <- 300
+input$TotalStrikeouts <- 500
+input$BattingAverage <- 0.333
+# test creation of new player
+new_data <- data.frame(
+        TotalYears = input$TotalYears,
+        TotalGames = input$TotalGames,
+        TotalAtBats = input$TotalAtBats,
+        TotalRuns = input$TotalRuns,
+        TotalHits = input$TotalHits,
+        TotalHomeRuns = input$TotalHomeRuns,
+        TotalRunsBattedIn = input$TotalRunsBattedIn,
+        TotalStolenBases = input$TotalStolenBases,
+        TotalWalks = input$TotalWalks,
+        TotalStrikeouts = input$TotalStrikeouts,
+        BattingAverage = input$BattingAverage,
+        OnBasePercentage = input$OnBasePercentage,
+        TotalAwards = input$TotalAwards
+      )
+#remove values form features not selcted

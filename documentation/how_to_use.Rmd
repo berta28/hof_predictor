@@ -1,0 +1,39 @@
+---
+output:
+  pdf_document:
+    toc: yes
+runtime: shiny
+---
+
+# Welcome!
+Welcome to the Baseball Hall of Fame Predictor app! This app allows users to explore a baseball dataset and build a logistic regression model to predict if a player will be inducted into the Hall of Fame based on their career statistics. Follow the steps below to use the app effectively.
+
+## How to Use the App
+
+### 1. Select Features and Filters:
+
+* Navigate to the "Dataset" tab to select the features and filters for training the model.
+* Choose features such as Total Years, Total Games, Total At Bats, and more to include in the model.
+* Apply filters for the year, games played, at-bats, and batting average to refine the dataset.
+
+### 2. Explore the Dataset:
+
+* Go to the "Explore Dataset" tab to visualize the data.
+* Select features to plot against each other and explore their distributions and relationships.
+* Use density plots to see how features vary between players who were inducted into the Hall of Fame and those who were not.
+
+### 3. Build the Model:
+
+* In the "Model" tab, click the "Build Model" button to train a logistic regression model with the selected features.
+* View the model summary and coefficients to understand the impact of each feature on the prediction.
+
+### 4. Evaluate the Model:
+
+* Visit the "Model Evaluation" tab to evaluate the model's performance.
+* Plot features against predicted probabilities to see how well the model predicts Hall of Fame induction.
+
+### 5. Make Predictions:
+
+* Use the "Prediction" tab to enter the career statistics of a player and predict their likelihood of being inducted into the Hall of Fame.
+* Enter player statistics such as total years played, total games, total at-bats, total runs, etc.
+* The app will display the predicted probability and an image indicating whether the player is likely or unlikely to be inducted.
