@@ -21,4 +21,4 @@ source("create_dataset.R")
 # Call the create_dataset function
 hitting_data_agg <- create_dataset()
 
-rsconnect::deployApp(hof_predictor)
+rsconnect::deployApp("hof_predictor")

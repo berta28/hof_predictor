@@ -1,4 +1,13 @@
-#we are creating an app that will allow us to explore the data and build a model to predict if a player will be inducted into the Hall of Fame
+library(shiny)
+library(ggplot2)
+library(bslib)
+library(gridlayout)
+library(dplyr)
+library(caret)
+library(pROC) 
+library(DT)
+library(plotly)
+library(markdown)#we are creating an app that will allow us to explore the data and build a model to predict if a player will be inducted into the Hall of Fame
 ui <- fluidPage(
   titlePanel("Baseball Hall of Fame Predictor Using Logistic Regression"),
   
